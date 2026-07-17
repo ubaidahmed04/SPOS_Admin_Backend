@@ -1,0 +1,356 @@
+{
+  "info": {
+    "name": "Appliance Stock Backend",
+    "description": "Smart Home Appliances — Region / Vendor / Branch / Model API.\n\nAuth: cookie-based JWT (httpOnly `accessToken` cookie). Run \"Auth > Login\" first — Postman's cookie jar will automatically attach the cookie to every request after that, as long as you keep Postman's cookie jar enabled for {{baseUrl}}.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:4000/api/v1" },
+    { "key": "regionId", "value": "" },
+    { "key": "vendorId", "value": "" },
+    { "key": "branchId", "value": "" },
+    { "key": "modelId", "value": "" },
+    { "key": "userId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('accessToken cookie set', function () {",
+                  "  pm.expect(pm.cookies.has('accessToken')).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"Admin@12345\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "description": "Checks username/password against userslogin (bcrypt-hashed). Run `npm run seed:admin` first to create the initial admin account. Sets an httpOnly `accessToken` cookie used to authenticate all other requests, and sets loginstatus = 1 for the user."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"] },
+            "description": "Requires auth cookie. Clears the cookie and sets loginstatus = 0 in userslogin."
+          }
+        },
+        {
+          "name": "Change Password (self-service)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"Admin@12345\",\n  \"newPassword\": \"NewStrongPass@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "change-password"]
+            },
+            "description": "Requires auth cookie (logged-in user changes their OWN password). Current password is verified with bcrypt before the new one is hashed and saved. New password must be >= 8 characters and different from the current one."
+          }
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "Add User (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vuserid\": null,\n  \"vusername\": \"operator1\",\n  \"vpassword\": \"Operator@123\",\n  \"vuserrole\": \"USER\",\n  \"vstatus\": 0\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/user/add-edit", "host": ["{{baseUrl}}"], "path": ["user", "add-edit"] },
+            "description": "Admin-only (requires ADMIN role cookie). vpassword is hashed with bcrypt in the controller before it ever reaches the DB. Password required (min 8 chars) when creating a new user. vuserrole must be ADMIN or USER."
+          }
+        },
+        {
+          "name": "Edit User (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vuserid\": {{userId}},\n  \"vuserrole\": \"ADMIN\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/user/add-edit", "host": ["{{baseUrl}}"], "path": ["user", "add-edit"] },
+            "description": "Omit vpassword to leave the user's current password untouched — admins change roles/status here, not passwords. Users change their own password via Auth > Change Password."
+          }
+        },
+        {
+          "name": "Get All Users (admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/user/get-all", "host": ["{{baseUrl}}"], "path": ["user", "get-all"] },
+            "description": "Admin-only. Never returns password hashes."
+          }
+        },
+        {
+          "name": "Delete User (admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/user/{{userId}}", "host": ["{{baseUrl}}"], "path": ["user", "{{userId}}"] },
+            "description": "Soft delete — sets status = 1. Admins cannot delete their own account."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Region",
+      "item": [
+        {
+          "name": "Add Region",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  var body = pm.response.json();",
+                  "  console.log('Add Region response:', body.message);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vregionid\": null,\n  \"vregionname\": \"Sindh\",\n  \"vstatus\": 0\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/region/add-edit", "host": ["{{baseUrl}}"], "path": ["region", "add-edit"] },
+            "description": "vregionid = null -> INSERT (new region). Pass an existing vregionid -> UPDATE. Any field left null on update keeps its current DB value (v2 NVL behaviour)."
+          }
+        },
+        {
+          "name": "Edit Region",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vregionid\": {{regionId}},\n  \"vregionname\": \"Sindh Updated\",\n  \"vstatus\": 0\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/region/add-edit", "host": ["{{baseUrl}}"], "path": ["region", "add-edit"] },
+            "description": "Set the {{regionId}} collection variable to an existing regionid before running this."
+          }
+        },
+        {
+          "name": "Get All Regions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/region/get-all", "host": ["{{baseUrl}}"], "path": ["region", "get-all"] },
+            "description": "Always returns only active regions (status = 0) per the v2 get_region procedure."
+          }
+        },
+        {
+          "name": "Delete Region",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/region/{{regionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["region", "{{regionId}}"]
+            },
+            "description": "Soft delete — sets status = 1. Set the {{regionId}} variable first."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vendor",
+      "item": [
+        {
+          "name": "Add Vendor",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vvendorid\": null,\n  \"vcompany\": \"Dawlance Pakistan\",\n  \"vcontact\": \"Ali Raza\",\n  \"vphone\": \"021-111222333\",\n  \"vemail\": \"sales@dawlance.com.pk\",\n  \"vaddress\": \"Karachi, Pakistan\",\n  \"vstatus\": 0\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/vendor/add-edit", "host": ["{{baseUrl}}"], "path": ["vendor", "add-edit"] }
+          }
+        },
+        {
+          "name": "Edit Vendor",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vvendorid\": {{vendorId}},\n  \"vphone\": \"021-999888777\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/vendor/add-edit", "host": ["{{baseUrl}}"], "path": ["vendor", "add-edit"] },
+            "description": "Only vphone is sent — every other field (company, contact, email, address, status) keeps its current value thanks to NVL() in the v2 procedure."
+          }
+        },
+        {
+          "name": "Get All Vendors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/vendor/get-all", "host": ["{{baseUrl}}"], "path": ["vendor", "get-all"] }
+          }
+        },
+        {
+          "name": "Delete Vendor",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vendor/{{vendorId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["vendor", "{{vendorId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Branch",
+      "item": [
+        {
+          "name": "Add Branch",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vbranchid\": null,\n  \"vbranchname\": \"Gulshan Branch\",\n  \"vregionid\": {{regionId}},\n  \"vaddress\": \"Gulshan-e-Iqbal, Karachi\",\n  \"vstatus\": 0\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/branch/add-edit", "host": ["{{baseUrl}}"], "path": ["branch", "add-edit"] },
+            "description": "vregionid must reference an existing region. Branch name is unique per-region, not globally."
+          }
+        },
+        {
+          "name": "Edit Branch",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vbranchid\": {{branchId}},\n  \"vaddress\": \"Updated address, Karachi\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/branch/add-edit", "host": ["{{baseUrl}}"], "path": ["branch", "add-edit"] }
+          }
+        },
+        {
+          "name": "Get All Branches",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/branch/get-all", "host": ["{{baseUrl}}"], "path": ["branch", "get-all"] },
+            "description": "Response includes joined regionname alongside regionid."
+          }
+        },
+        {
+          "name": "Delete Branch",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/branch/{{branchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["branch", "{{branchId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Model",
+      "item": [
+        {
+          "name": "Add Model",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vmodelid\": null,\n  \"vvendorid\": {{vendorId}},\n  \"vregionid\": {{regionId}},\n  \"vmodelname\": \"Inverter Refrigerator 15 CFT\",\n  \"vmodelcode\": \"DWL-INV-15\",\n  \"vmrp\": 185000,\n  \"vcash\": 175000,\n  \"vhscode\": \"8418.10\",\n  \"vstatus\": 0\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/model/add-edit", "host": ["{{baseUrl}}"], "path": ["model", "add-edit"] },
+            "description": "vvendorid and vregionid must reference existing vendor/region rows. vmodelcode must be unique across all models."
+          }
+        },
+        {
+          "name": "Edit Model",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vmodelid\": {{modelId}},\n  \"vmrp\": 189000,\n  \"vcash\": 179000\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/model/add-edit", "host": ["{{baseUrl}}"], "path": ["model", "add-edit"] }
+          }
+        },
+        {
+          "name": "Get All Models",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/model/get-all", "host": ["{{baseUrl}}"], "path": ["model", "get-all"] },
+            "description": "Response includes joined company (vendor) and regionname alongside their ids."
+          }
+        },
+        {
+          "name": "Delete Model",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/model/{{modelId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["model", "{{modelId}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
