@@ -11,7 +11,7 @@ oracledb.fetchAsString = [oracledb.CLOB];
 try {
   oracledb.initOracleClient({
     libDir: process.env.NODE_ENV === 'production' 
-      ? "/cloudclusters/instantclient_23_5" 
+      ? "/opt/oracle/instantclient_23_7" 
       : "../Oracle/instantclient_21_3"
   });
 } catch (err) {
