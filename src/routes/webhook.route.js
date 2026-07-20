@@ -47,7 +47,7 @@ router.post(
       npm install --omit=dev &&
       supervisorctl reread &&
       supervisorctl update &&
-      supervisorctl restart demo
+      supervisorctl restart demo 
     `;
 
     exec(deployCmd, (error, stdout, stderr) => {
