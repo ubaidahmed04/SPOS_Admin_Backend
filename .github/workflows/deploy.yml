@@ -20,4 +20,4 @@ jobs:
             cd /cloudclusters/demo
             git pull origin main
             npm install --omit=dev
-            supervisorctl restart demo
+            supervisorctl restart demo 
