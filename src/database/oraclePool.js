@@ -9,11 +9,14 @@ oracledb.fetchAsString = [oracledb.CLOB];
 
 // Oracle Client Initialization (Thick Mode)
 try {
+  // oracledb.initOracleClient({
+  //   libDir: process.env.NODE_ENV === 'production' 
+  //     ? "/opt/oracle/instantclient_23_5" 
+  //     : "../Oracle/instantclient_21_3"
+  // });
   oracledb.initOracleClient({
-    libDir: process.env.NODE_ENV === 'production' 
-      ? "/opt/oracle/instantclient_23_5" 
-      : "../Oracle/instantclient_21_3"
-  });
+  libDir: '/opt/oracle/instantclient_23_5'
+});
 } catch (err) {
   console.warn('[DB WARNING] Oracle client already initialized or failed to load. Continuing...', err.message);
 }
