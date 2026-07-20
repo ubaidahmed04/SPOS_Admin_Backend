@@ -1,0 +1,23 @@
+name: Deploy to CloudClusters
+
+on:
+  push:
+    branches:
+      - main   # jis branch pe push hoga, wahi trigger hoga
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd /cloudclusters/demo
+            git pull origin main
+            npm install --omit=dev
+            supervisorctl restart demo
