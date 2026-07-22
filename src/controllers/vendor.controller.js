@@ -25,7 +25,6 @@ async function AddEditVendor(req, res) {
     createActivityLog(logText, actorId).catch((logErr) => {
       logger.error('Failed to log vendor activity to DB', { error: logErr.message });
     });
-    // ──────────────────────────────────────────────────────────────────────────
 
     return res.success(result, result?.message || 'Vendor saved successfully');
   } catch (error) {
