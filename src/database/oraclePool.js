@@ -4,7 +4,7 @@ const oracledb = require('oracledb');
 
 // Global DB settings
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
-oracledb.autoCommit = false; // Transaction control manual hand-held by withTransaction or PL/SQL
+oracledb.autoCommit = false; // 
 oracledb.fetchAsString = [oracledb.CLOB];
 
 // Oracle Client Initialization (Thick Mode)
