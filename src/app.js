@@ -11,7 +11,7 @@ const responseFormatter = require('./middleware/response.middleware');
 const notFoundHandler = require('./middleware/notFound.middleware');
 const errorHandler = require('./middleware/errorHandler.middleware');
 const v1Routes = require('./routes');
-const webhookRoute = require('../src/routes/webhook.route');
+const webhookRoute = require('./routes/webhook.route');
 
 const app = express();
 
