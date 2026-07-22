@@ -14,7 +14,6 @@ async function AddEditVendor(req, res) {
       return res.fail(httpStatus.CONFLICT, result.message);
     }
 
-    // ──  GENERATE HISTORY LOG FOR VENDOR ────────────────────────────────────
     // Agar id null/undefined hai toh "Added", warna "Updated"
     const isEdit = req.body.id || req.body.vvendorid;
     const action = isEdit ? 'details updated' : 'added';
