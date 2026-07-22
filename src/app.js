@@ -44,11 +44,11 @@ app.use(
     },
   }),
 );
-app.use('/', webhookRoute);
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 app.use(responseFormatter);
+app.use('/', webhookRoute);
 
 const basePath = `/api/${env.API_VERSION}`;
 app.use(basePath, v1Routes);
