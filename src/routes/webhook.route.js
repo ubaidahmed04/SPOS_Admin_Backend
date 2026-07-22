@@ -8,12 +8,12 @@ const WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET;
 function verifySignature(rawBody, signature) {
   if (!signature || !rawBody) return false;
 
-  const hmac = crypto.createHmac('sha256', WEBHOOK_SECRET);
-  const digest = 'sha256=' + hmac.update(rawBody).digest('hex');
-
   try {
+    const hmac = crypto.createHmac('sha256', WEBHOOK_SECRET);
+    const digest = 'sha256=' + hmac.update(rawBody).digest('hex');
     return crypto.timingSafeEqual(Buffer.from(digest), Buffer.from(signature));
-  } catch {
+  } catch (err) {
+    console.error('Signature verification error:', err.message);
     return false;
   }
 }
