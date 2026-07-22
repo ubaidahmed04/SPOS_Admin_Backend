@@ -5,7 +5,6 @@ const logger = require('../config/logger');
 const { fetchRecentActivities } = require('../services/activity.service');
 
 /**
- * Fetch recent audit/activity logs.
  * Supports an optional query param 'limit' (default is 10).
  */
 async function getRecentActivities(req, res) {
