@@ -11,6 +11,12 @@ function verifySignature(rawBody, signature) {
   try {
     const hmac = crypto.createHmac('sha256', WEBHOOK_SECRET);
     const digest = 'sha256=' + hmac.update(rawBody).digest('hex');
+
+    console.log('DEBUG - Secret length:', WEBHOOK_SECRET ? WEBHOOK_SECRET.length : 'undefined');
+    console.log('DEBUG - Computed digest:', digest);
+    console.log('DEBUG - Received signature:', signature);
+    console.log('DEBUG - Digest length:', digest.length, 'Signature length:', signature.length);
+
     return crypto.timingSafeEqual(Buffer.from(digest), Buffer.from(signature));
   } catch (err) {
     console.error('Signature verification error:', err.message);
